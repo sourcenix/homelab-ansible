@@ -1,2 +1,2 @@
 # ansible
-A repo for small Ansible scripts I have created over the years
+Repo created to share examples from my homelab.

@@ -1,0 +1,70 @@
+---
+- name: Configure global firewall rules for RHEL servers
+  hosts: rhel-server
+   
+  tasks:
+    #Cleanup the public and internal zone in Firewalld
+    - name: Disallow all services on public zone
+      ansible.posix.firewalld:
+       service: "{{ item }}"
+       zone: public
+       permanent: yes
+       state: disabled
+      loop:
+       - cockpit
+       - ssh
+       - dhcpv6-client
+      become: yes
+  
+    - name: Disallow all services on internal zone
+      ansible.posix.firewalld:
+       service: "{{ item }}"
+       zone: internal
+       permanent: yes
+       state: disabled
+      loop:
+       - mdns
+       - samba-client
+       - dhcpv6-client
+       - cockpit
+       - ssh
+      become: yes
+    
+    - name: Enable internal zone with trusted workstations and servers
+      ansible.posix.firewalld:
+       source: "{{ item }}"
+       zone: internal
+       state: enabled
+       permanent: yes
+      loop:
+       - 192.168.1.1/32
+       - 192.168.1.2/32
+       - 192.168.1.3/32
+      become: yes
+
+    - name: Open services on internal zone
+      ansible.posix.firewalld:
+       service: "{{ item }}"
+       zone: internal
+       permanent: yes
+       state: enabled
+      loop: 
+       - cockpit
+       - ssh
+       - https
+      become: yes
+
+    #As per RH recommendation: https://access.redhat.com/articles/4855631
+    - name: Disable zone drifting
+      ansible.builtin.lineinfile:
+       path: /etc/firewalld/firewalld.conf
+       regexp: '^AllowZoneDrifting'
+       line: AllowZoneDrifting=no
+      become: yes
+
+   #Restart firewalld for changes to take effect
+    - name: reload service firewalld
+      systemd:
+       name: firewalld
+       state: reloaded
+      become: yes 
