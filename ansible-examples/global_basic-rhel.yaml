@@ -8,9 +8,9 @@
     #Set authorized keys
     - name: Set authorized SSH key
       ansible.posix.authorized_key:
-       user: jbrennan
+       user: myuser
        state: present
-       key: "{{ lookup('file', '/home/jbrennan/ansible/sourcenix/resources/ssh/deploy-01.pub') }}"
+       key: "{{ lookup('file', '/home/myuser/ansible/resources/ssh/myuser-ssh-key.pub') }}"
       become: yes
 
     #Copy baseline auditd configuration: https://github.com/Neo23x0/auditd
